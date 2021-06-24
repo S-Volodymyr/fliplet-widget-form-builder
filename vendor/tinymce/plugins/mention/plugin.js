@@ -64,7 +64,6 @@
 
 		renderInput: function () {
 			var rawHtml = '<span id="autocomplete">' +
-				//'<span id="autocomplete-delimiter"></span>' +
 				'<span id="autocomplete-delimiter">' + this.options.delimiter + '</span>' +
 				'<span id="autocomplete-searchtext"><span class="dummy">\uFEFF</span></span>' +
 				'</span>';
