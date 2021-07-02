@@ -111,8 +111,6 @@
 
 				//BACKSPACE
 				case 8:
-				//SPACE
-				case 32:
 					if (this.query === '') {
 						this.cleanUp(true);
 					} else {
@@ -135,6 +133,8 @@
 
 				//ESC
 				case 27:
+				//SPACE
+				case 32:
 					this.cleanUp(true);
 					break;
 
@@ -151,11 +151,11 @@
 				case 13:
 				//ESC
 				case 27:
-				//SPACE
-				case 32:
 					e.preventDefault();
 					break;
-
+				//SPACE
+				case 32:
+					break;
 				//UP ARROW
 				case 38:
 					e.preventDefault();
@@ -256,7 +256,8 @@
 
 			var _this = this,
 				result = [],
-				items = $.grep(data, function (item) {
+				sortedData = _.orderBy(data, ['name'],['asc']),
+				items = $.grep(sortedData, function (item) {
 					return _this.matcher(item);
 				});
 
@@ -391,23 +392,25 @@
 
 		init: function (ed) {
 
-            var autoComplete,
-                autoCompleteData = ed.getParam('mentions');
+			var autoComplete,
+				autoCompleteData = ed.getParam('mentions');
 
-            // If the delimiter is undefined set default value to ['@'].
-            // If the delimiter is a string value convert it to an array. (backwards compatibility)
-            autoCompleteData.delimiter = (autoCompleteData.delimiter !== undefined) ? !$.isArray(autoCompleteData.delimiter) ? [autoCompleteData.delimiter] : autoCompleteData.delimiter : ['@'];
+			// If the delimiter is undefined set default value to ['@'].
+			// If the delimiter is a string value convert it to an array. (backwards compatibility)
+			autoCompleteData.delimiter = (autoCompleteData.delimiter !== undefined) ? !$.isArray(autoCompleteData.delimiter) ? [autoCompleteData.delimiter] : autoCompleteData.delimiter : ['@'];
 
-            function prevCharIsSpace() {
-                var start = ed.selection.getRng(true).startOffset,
+			function prevCharIsSpace() {
+				var start = ed.selection.getRng(true).startOffset,
 					text = ed.selection.getRng(true).startContainer.data || '',
 					charachter = text.substr(start > 0 ? start - 1 : 0, 1);
 
-                return (!!$.trim(charachter).length) ? false : true;
-            }
+				return !(!!$.trim(charachter).length);
+			}
 
-            ed.on('keypress', function (e) {
-                var delimiterIndex = $.inArray(String.fromCharCode(e.which || e.keyCode), autoCompleteData.delimiter);
+			ed.on('input', function(e) {
+				console.debug('e: ', e);
+				console.debug('input: ', this);
+				var delimiterIndex = $.inArray(e.data, autoCompleteData.delimiter);
                 if (delimiterIndex > -1 && prevCharIsSpace()) {
                     if (autoComplete === undefined || (autoComplete.hasFocus !== undefined && !autoComplete.hasFocus)) {
                         e.preventDefault();
@@ -415,7 +418,7 @@
                         autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
                     }
                 }
-            });
+			});
 
         },
 
