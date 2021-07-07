@@ -347,7 +347,10 @@
 					return;
 				}
 
-				var replacement = $('<p>' + this.options.delimiter + text + '</p>')[0].firstChild,
+				var replacementText = text 
+					? this.options.delimiter + text
+					: text;
+				var replacement = $('<p>' + replacementText + '</p>')[0].firstChild,
 					focus = $(this.editor.selection.getNode()).offset().top === ($selection.offset().top + (($selection.outerHeight() - $selection.height()) / 2));
 
 				this.editor.dom.replace(replacement, $selection[0]);
@@ -399,28 +402,21 @@
 			// If the delimiter is a string value convert it to an array. (backwards compatibility)
 			autoCompleteData.delimiter = (autoCompleteData.delimiter !== undefined) ? !$.isArray(autoCompleteData.delimiter) ? [autoCompleteData.delimiter] : autoCompleteData.delimiter : ['@'];
 
-			function prevCharIsSpace() {
-				var start = ed.selection.getRng(true).startOffset,
-					text = ed.selection.getRng(true).startContainer.data || '',
-					charachter = text.substr(start > 0 ? start - 1 : 0, 1);
-
-				return !(!!$.trim(charachter).length);
-			}
-
-			ed.on('input', function(e) {
-				console.debug('e: ', e);
-				console.debug('input: ', this);
+			ed.on('input', function (e) {
+				var selection = ed.selection.getSel();
 				var delimiterIndex = $.inArray(e.data, autoCompleteData.delimiter);
-                if (delimiterIndex > -1 && prevCharIsSpace()) {
-                    if (autoComplete === undefined || (autoComplete.hasFocus !== undefined && !autoComplete.hasFocus)) {
-                        e.preventDefault();
-                        // Clone options object and set the used delimiter.
-                        autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
-                    }
-                }
+				var showMention = ($(selection.focusNode).text()[selection.focusOffset - 2] === ' ' || selection.focusOffset === 1) && delimiterIndex > -1;
+
+				if (showMention) {
+					if (autoComplete === undefined || (autoComplete.hasFocus !== undefined && !autoComplete.hasFocus)) {
+						e.preventDefault();
+						// Clone options object and set the used delimiter.
+						autoComplete = new AutoComplete(ed, $.extend({}, autoCompleteData, { delimiter: autoCompleteData.delimiter[delimiterIndex] }));
+					}
+				}
 			});
 
-        },
+		},
 
 		getInfo: function () {
 			return {
