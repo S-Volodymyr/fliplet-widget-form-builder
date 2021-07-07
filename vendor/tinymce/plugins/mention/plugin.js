@@ -64,12 +64,11 @@
 
 		renderInput: function () {
 			var rawHtml = '<span id="autocomplete">' +
-				'<span id="autocomplete-delimiter">' + this.options.delimiter + '</span>' +
+				'<span id="autocomplete-delimiter"></span>' +
 				'<span id="autocomplete-searchtext"><span class="dummy">\uFEFF</span></span>' +
 				'</span>';
 
 			this.editor.execCommand('mceInsertContent', false, rawHtml);
-			this.editor.focus();
 			this.editor.selection.select(this.editor.selection.dom.select('span#autocomplete-searchtext span')[0]);
 			this.editor.selection.collapse(0);
 		},
@@ -80,8 +79,6 @@
 			this.editor.on('click', this.editorClickProxy = $.proxy(this.rteClicked, this));
 
 			$('body').on('click', this.bodyClickProxy = $.proxy(this.rteLostFocus, this));
-
-			$(this.editor.getWin()).on('scroll', this.rteScroll = $.proxy(function () { this.cleanUp(true); }, this));
 		},
 
 		unbindEvents: function () {
@@ -194,8 +191,6 @@
 		},
 
 		lookup: function () {
-			this.query = $.trim($(this.editor.getBody()).find('#autocomplete-searchtext').text()).replace('\ufeff', '');
-			
 			if (this.$dropdown === undefined) {
 				this.show();
 			}
@@ -241,6 +236,7 @@
 
 		show: function () {
 			var offset = this.editor.inline ? this.offsetInline() : this.offset();
+
 			this.$dropdown = $(this.renderDropdown())
 				.css({ 'top': offset.top, 'left': offset.left, 'maxWidth':  offset.maxWidth});
 
@@ -347,10 +343,7 @@
 					return;
 				}
 
-				var replacementText = text 
-					? this.options.delimiter + text
-					: text;
-				var replacement = $('<p>' + replacementText + '</p>')[0].firstChild,
+				var replacement = $('<p>' + text + '</p>')[0].firstChild,
 					focus = $(this.editor.selection.getNode()).offset().top === ($selection.offset().top + (($selection.outerHeight() - $selection.height()) / 2));
 
 				this.editor.dom.replace(replacement, $selection[0]);
@@ -369,8 +362,8 @@
 				listBox = nodePosition.left + this.editorContainerWidth / 2,
 				containerBox = this.editor.container.offsetWidth + this.editor.container.offsetLeft,
 				listPosLeft = listBox > containerBox
-					? nodePosition.left - (listBox - containerBox)
-					: rtePosition.left + contentAreaPosition.left + nodePosition.left;
+				? nodePosition.left - (listBox - containerBox)
+				: rtePosition.left + contentAreaPosition.left + nodePosition.left;
 
 			return {
 				top: rtePosition.top + contentAreaPosition.top + nodePosition.top - $(this.editor.getDoc()).scrollTop() + 5,
